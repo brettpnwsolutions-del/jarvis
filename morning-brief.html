@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>DONNY // MORNING BRIEF</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap');
+
+    :root {
+      --hud-blue: #00d4ff;
+      --hud-blue-dim: rgba(0, 212, 255, 0.15);
+      --hud-blue-border: rgba(0, 212, 255, 0.4);
+      --hud-orange: #ff6b00;
+      --hud-orange-dim: rgba(255, 107, 0, 0.15);
+      --hud-green: #00ff9d;
+      --hud-green-dim: rgba(0, 255, 157, 0.1);
+      --hud-red: #ff3b3b;
+      --hud-yellow: #ffd700;
+      --bg-dark: #020d1a;
+      --bg-panel: rgba(0, 20, 40, 0.85);
+      --text-main: #c8e6f5;
+      --text-dim: rgba(200, 230, 245, 0.5);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--bg-dark);
+      color: var(--text-main);
+      font-family: 'Rajdhani', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* Animated background grid */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      z-index: 0;
+      animation: gridPulse 6s ease-in-out infinite;
+    }
+
+    @keyframes gridPulse {
+      0%, 100% { opacity: 0.5; }
+      50% { opacity: 1; }
+    }
+
+    /* Radial glow center */
+    body::after {
+      content: '';
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 900px;
+      height: 900px;
+      background: radial-gradient(circle, rgba(0,80,150,0.12) 0%, transparent 70%);
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .wrapper {
+      position: relative;
+      z-index: 1;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    /* ── HEADER ── */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 24px;
+      border: 1px solid var(--hud-blue-border);
+      background: var(--bg-panel);
+      margin-bottom: 20px;
+      position: relative;
+      clip-path: polygon(0 0, calc(100% - 24px) 0, 100% 24px, 100% 100%, 24px 100%, 0 calc(100% - 24px));
+    }
+
+    .header::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--hud-blue), transparent);
+      animation: scanline 3s ease-in-out infinite;
+    }
+
+    @keyframes scanline {
+      0%, 100% { opacity: 0.3; }
+      50% { opacity: 1; }
+    }
+
+    .header-left {}
+    .header-title {
+      font-family: 'Orbitron', monospace;
+      font-size: 28px;
+      font-weight: 900;
+      color: var(--hud-blue);
+      text-shadow: 0 0 20px var(--hud-blue), 0 0 40px rgba(0,212,255,0.3);
+      letter-spacing: 4px;
+    }
+
+    .header-sub {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 11px;
+      color: var(--text-dim);
+      letter-spacing: 3px;
+      margin-top: 2px;
+    }
+
+    .header-right {
+      text-align: right;
+    }
+
+    .header-date {
+      font-family: 'Orbitron', monospace;
+      font-size: 14px;
+      color: var(--hud-blue);
+      letter-spacing: 2px;
+    }
+
+    .header-time {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 11px;
+      color: var(--text-dim);
+      margin-top: 4px;
+    }
+
+    .status-dot {
+      display: inline-block;
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--hud-green);
+      box-shadow: 0 0 8px var(--hud-green);
+      margin-right: 6px;
+      animation: blink 2s ease-in-out infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    /* ── GRID LAYOUT ── */
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      grid-template-rows: auto auto;
+      gap: 16px;
+    }
+
+    .grid .weather-panel { grid-column: 1; grid-row: 1; }
+    .grid .market-panel  { grid-column: 2; grid-row: 1; }
+    .grid .calendar-panel{ grid-column: 3; grid-row: 1; }
+    .grid .mott-panel    { grid-column: 1 / 4; grid-row: 2; }
+
+    /* ── PANEL BASE ── */
+    .panel {
+      background: var(--bg-panel);
+      border: 1px solid var(--hud-blue-border);
+      padding: 20px;
+      position: relative;
+      clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 0 100%);
+      backdrop-filter: blur(10px);
+    }
+
+    .panel::after {
+      content: '';
+      position: absolute;
+      top: 0; right: 0;
+      width: 16px; height: 16px;
+      background: linear-gradient(225deg, var(--hud-blue) 0%, transparent 60%);
+      opacity: 0.6;
+    }
+
+    .panel-title {
+      font-family: 'Orbitron', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 3px;
+      color: var(--hud-blue);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .panel-title::before {
+      content: '//';
+      color: var(--hud-orange);
+      font-family: 'Share Tech Mono', monospace;
+    }
+
+    .panel-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, var(--hud-blue-border), transparent);
+    }
+
+    /* ── WEATHER ── */
+    .weather-main {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .weather-icon {
+      font-size: 52px;
+      filter: drop-shadow(0 0 12px rgba(255,215,0,0.5));
+    }
+
+    .weather-temp {
+      font-family: 'Orbitron', monospace;
+      font-size: 48px;
+      font-weight: 900;
+      color: var(--hud-yellow);
+      text-shadow: 0 0 20px rgba(255,215,0,0.4);
+      line-height: 1;
+    }
+
+    .weather-temp span {
+      font-size: 20px;
+      color: var(--text-dim);
+    }
+
+    .weather-desc {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-main);
+      letter-spacing: 1px;
+      margin-top: 4px;
+    }
+
+    .weather-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .stat-item {
+      background: var(--hud-blue-dim);
+      border: 1px solid var(--hud-blue-border);
+      padding: 8px 12px;
+      font-family: 'Share Tech Mono', monospace;
+    }
+
+    .stat-label {
+      font-size: 9px;
+      color: var(--text-dim);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    .stat-value {
+      font-size: 16px;
+      color: var(--hud-blue);
+      margin-top: 2px;
+    }
+
+    /* ── MARKET ── */
+    .market-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(0,212,255,0.08);
+    }
+
+    .market-item:last-child { border-bottom: none; }
+
+    .market-name {
+      font-family: 'Orbitron', monospace;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-main);
+      letter-spacing: 1px;
+    }
+
+    .market-sub {
+      font-size: 10px;
+      color: var(--text-dim);
+      font-family: 'Share Tech Mono', monospace;
+    }
+
+    .market-val {
+      text-align: right;
+    }
+
+    .market-price {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 16px;
+      color: var(--hud-blue);
+    }
+
+    .market-change {
+      font-size: 12px;
+      font-family: 'Share Tech Mono', monospace;
+    }
+
+    .up { color: var(--hud-green); }
+    .down { color: var(--hud-red); }
+    .neutral { color: var(--hud-yellow); }
+
+    .vix-bar {
+      margin-top: 16px;
+      background: rgba(0,212,255,0.05);
+      border: 1px solid var(--hud-blue-border);
+      padding: 10px 14px;
+    }
+
+    .vix-label {
+      font-family: 'Orbitron', monospace;
+      font-size: 10px;
+      letter-spacing: 2px;
+      color: var(--text-dim);
+      margin-bottom: 6px;
+    }
+
+    .vix-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .vix-val {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 24px;
+      color: var(--hud-yellow);
+    }
+
+    .vix-status {
+      font-size: 11px;
+      letter-spacing: 2px;
+      color: var(--hud-green);
+      font-family: 'Orbitron', monospace;
+    }
+
+    /* ── CALENDAR ── */
+    .cal-item {
+      display: flex;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(0,212,255,0.08);
+      align-items: flex-start;
+    }
+
+    .cal-item:last-child { border-bottom: none; }
+
+    .cal-time {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 12px;
+      color: var(--hud-orange);
+      white-space: nowrap;
+      min-width: 60px;
+      padding-top: 2px;
+    }
+
+    .cal-event {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-main);
+      letter-spacing: 0.5px;
+    }
+
+    .cal-empty {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 12px;
+      color: var(--text-dim);
+      letter-spacing: 1px;
+      padding: 16px 0;
+      text-align: center;
+    }
+
+    /* ── MOTT LEVELS ── */
+    .mott-panel {
+      border-color: var(--hud-orange);
+    }
+
+    .mott-panel .panel-title {
+      color: var(--hud-orange);
+    }
+
+    .mott-panel::after {
+      background: linear-gradient(225deg, var(--hud-orange) 0%, transparent 60%);
+    }
+
+    .mott-panel .panel-title::after {
+      background: linear-gradient(90deg, rgba(255,107,0,0.4), transparent);
+    }
+
+    .mott-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .mott-current {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+    }
+
+    .mott-price {
+      font-family: 'Orbitron', monospace;
+      font-size: 36px;
+      font-weight: 900;
+      color: var(--hud-orange);
+      text-shadow: 0 0 20px rgba(255,107,0,0.4);
+    }
+
+    .mott-meta {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+
+    .mott-bias {
+      font-family: 'Orbitron', monospace;
+      font-size: 11px;
+      letter-spacing: 2px;
+      color: var(--hud-yellow);
+      background: rgba(255,215,0,0.1);
+      border: 1px solid rgba(255,215,0,0.3);
+      padding: 6px 14px;
+    }
+
+    .levels-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 16px;
+    }
+
+    .level-block {
+      background: rgba(0, 20, 40, 0.6);
+      border: 1px solid rgba(0,212,255,0.2);
+      padding: 14px;
+      position: relative;
+    }
+
+    .level-block.weekly { border-color: rgba(0,212,255,0.3); }
+    .level-block.monthly { border-color: rgba(255,107,0,0.3); }
+
+    .level-tf {
+      font-family: 'Orbitron', monospace;
+      font-size: 10px;
+      letter-spacing: 3px;
+      margin-bottom: 12px;
+    }
+
+    .level-tf.daily   { color: var(--hud-blue); }
+    .level-tf.weekly  { color: var(--hud-blue); }
+    .level-tf.monthly { color: var(--hud-orange); }
+
+    .level-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 5px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      font-family: 'Share Tech Mono', monospace;
+    }
+
+    .level-row:last-child { border-bottom: none; }
+
+    .level-tag {
+      font-size: 11px;
+      letter-spacing: 1px;
+    }
+
+    .level-tag.r2 { color: #ff4444; }
+    .level-tag.r1 { color: #ff8888; }
+    .level-tag.pp { color: var(--hud-yellow); font-weight: bold; }
+    .level-tag.s1 { color: #88ff88; }
+    .level-tag.s2 { color: #44ff44; }
+
+    .level-num {
+      font-size: 15px;
+      color: var(--text-main);
+    }
+
+    .level-num.current-zone {
+      color: var(--hud-orange);
+      text-shadow: 0 0 8px rgba(255,107,0,0.5);
+    }
+
+    .level-separator {
+      width: 100%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255,107,0,0.5), transparent);
+      margin: 10px 0;
+    }
+
+    /* Special levels row */
+    .special-levels {
+      display: flex;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .special-item {
+      flex: 1;
+      background: rgba(0,20,40,0.6);
+      border: 1px solid rgba(255,215,0,0.25);
+      padding: 10px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .special-label {
+      font-family: 'Orbitron', monospace;
+      font-size: 9px;
+      letter-spacing: 2px;
+      color: var(--text-dim);
+    }
+
+    .special-val {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 16px;
+      color: var(--hud-yellow);
+    }
+
+    /* ── FOOTER ── */
+    .footer {
+      margin-top: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 24px;
+      border: 1px solid rgba(0,212,255,0.15);
+      background: rgba(0,20,40,0.4);
+    }
+
+    .footer-text {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 10px;
+      color: var(--text-dim);
+      letter-spacing: 2px;
+    }
+
+    .footer-sig {
+      font-family: 'Orbitron', monospace;
+      font-size: 10px;
+      color: var(--hud-blue);
+      letter-spacing: 3px;
+      opacity: 0.6;
+    }
+
+    /* corner decorations */
+    .corner-tl, .corner-br {
+      position: absolute;
+      width: 12px;
+      height: 12px;
+    }
+
+    .corner-tl {
+      top: 0; left: 0;
+      border-top: 2px solid var(--hud-blue);
+      border-left: 2px solid var(--hud-blue);
+    }
+
+    .corner-br {
+      bottom: 0; right: 0;
+      border-bottom: 2px solid var(--hud-blue);
+      border-right: 2px solid var(--hud-blue);
+    }
+
+    /* scanning line animation */
+    .scan-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, rgba(0,212,255,0.3), transparent);
+      animation: scanDown 8s linear infinite;
+      pointer-events: none;
+      z-index: 999;
+    }
+
+    @keyframes scanDown {
+      0%   { top: 0; opacity: 1; }
+      100% { top: 100vh; opacity: 0.2; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="scan-overlay"></div>
+
+<div class="wrapper">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-left">
+      <div class="header-title">J.A.R.V.I.S // MORNING BRIEF</div>
+      <div class="header-sub"><span class="status-dot"></span>SYSTEM ONLINE &nbsp;|&nbsp; OPERATOR: BRETT &nbsp;|&nbsp; CLEARANCE: LEVEL 7</div>
+    </div>
+    <div class="header-right">
+      <div class="header-date" id="hdr-date">THU // 08 MAY 2026</div>
+      <div class="header-time" id="hdr-time">LOADING...</div>
+    </div>
+  </div>
+
+  <!-- MAIN GRID -->
+  <div class="grid">
+
+    <!-- WEATHER -->
+    <div class="panel weather-panel">
+      <div class="panel-title">ATMOSPHERIC CONDITIONS</div>
+      <div class="weather-main">
+        <div class="weather-icon">☀️</div>
+        <div>
+          <div class="weather-temp" id="weather-temp">--<span>°F</span></div>
+          <div class="weather-desc" id="weather-desc">Loading...</div>
+        </div>
+      </div>
+      <div class="weather-stats">
+        <div class="stat-item">
+          <div class="stat-label">Feels Like</div>
+          <div class="stat-value" id="weather-feels">--</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Humidity</div>
+          <div class="stat-value" id="weather-humidity">--</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Wind</div>
+          <div class="stat-value" id="weather-wind">--</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">UV Index</div>
+          <div class="stat-value" id="weather-uv">--</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MARKET -->
+    <div class="panel market-panel">
+      <div class="panel-title">MARKET INTEL</div>
+
+      <div class="market-item">
+        <div>
+          <div class="market-name">SPY</div>
+          <div class="market-sub">S&P 500 ETF</div>
+        </div>
+        <div class="market-val">
+          <div class="market-price" id="spy-price">--</div>
+          <div class="market-change neutral" id="spy-gap">Loading...</div>
+        </div>
+      </div>
+
+      <div class="market-item">
+        <div>
+          <div class="market-name">PREV CLOSE</div>
+          <div class="market-sub">Yesterday's close</div>
+        </div>
+        <div class="market-val">
+          <div class="market-price" id="spy-prev">--</div>
+          <div class="market-change neutral" id="spy-hl">Loading...</div>
+        </div>
+      </div>
+
+      <div class="vix-bar">
+        <div class="vix-label">VOLATILITY INDEX (VIX)</div>
+        <div class="vix-row">
+          <div class="vix-val" id="vix-val">--</div>
+          <div class="vix-status">▼ -0.31 &nbsp;// LOW VOL</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CALENDAR -->
+    <div class="panel calendar-panel">
+      <div class="panel-title">SCHEDULE / CALENDAR</div>
+
+      <div class="cal-item">
+        <div class="cal-time">05:50 PM</div>
+        <div class="cal-event">Move the truck</div>
+      </div>
+      <div class="cal-item">
+        <div class="cal-time">08:00 PM</div>
+        <div class="cal-event">Talk about memory issues</div>
+      </div>
+
+    </div>
+
+    <!-- MOTT LEVELS -->
+    <div class="panel mott-panel">
+      <div class="panel-title">MOTT'S LEVELS // SPY PIVOT MATRIX</div>
+
+      <div class="mott-header">
+        <div class="mott-current">
+          <div class="mott-price">$731.58</div>
+          <div class="mott-meta">
+            CURRENT PRICE<br/>
+            AS OF 05/08/26
+          </div>
+        </div>
+        <div class="mott-bias">⚡ BIAS: FLAT / RANGE BOUND</div>
+      </div>
+
+      <div class="levels-grid">
+
+        <!-- DAILY -->
+        <div class="level-block daily">
+          <div class="level-tf daily">DAILY</div>
+          <div class="level-row"><span class="level-tag r2">R2</span><span class="level-num">$738.85</span></div>
+          <div class="level-row"><span class="level-tag r1">R1</span><span class="level-num">$736.34</span></div>
+          <div class="level-separator"></div>
+          <div class="level-row"><span class="level-tag pp">PP</span><span class="level-num current-zone">$732.08</span></div>
+          <div class="level-separator"></div>
+          <div class="level-row"><span class="level-tag s1">S1</span><span class="level-num">$729.57</span></div>
+          <div class="level-row"><span class="level-tag s2">S2</span><span class="level-num">$725.31</span></div>
+        </div>
+
+        <!-- WEEKLY -->
+        <div class="level-block weekly">
+          <div class="level-tf weekly">WEEKLY</div>
+          <div class="level-row"><span class="level-tag r2">R2</span><span class="level-num">$734.46</span></div>
+          <div class="level-row"><span class="level-tag r1">R1</span><span class="level-num">$727.55</span></div>
+          <div class="level-separator"></div>
+          <div class="level-row"><span class="level-tag pp">PP</span><span class="level-num">$717.96</span></div>
+          <div class="level-separator"></div>
+          <div class="level-row"><span class="level-tag s1">S1</span><span class="level-num">$711.05</span></div>
+          <div class="level-row"><span class="level-tag s2">S2</span><span class="level-num">$701.46</span></div>
+        </div>
+
+        <!-- MONTHLY -->
+        <div class="level-block monthly">
+          <div class="level-tf monthly">MONTHLY</div>
+          <div class="level-row"><span class="level-tag r2">R2</span><span class="level-num">$769.20</span></div>
+          <div class="level-row"><span class="level-tag r1">R1</span><span class="level-num">$743.93</span></div>
+          <div class="level-separator"></div>
+          <div class="level-row"><span class="level-tag pp">PP</span><span class="level-num">$694.52</span></div>
+          <div class="level-separator"></div>
+          <div class="level-row"><span class="level-tag s1">S1</span><span class="level-num">$669.25</span></div>
+          <div class="level-row"><span class="level-tag s2">S2</span><span class="level-num">$619.84</span></div>
+        </div>
+
+      </div>
+
+      <!-- Special levels -->
+      <div class="special-levels">
+        <div class="special-item">
+          <div class="special-label">GAMMA FLIP</div>
+          <div class="special-val">$731.21</div>
+        </div>
+        <div class="special-item">
+          <div class="special-label">MAX PAIN</div>
+          <div class="special-val">$732.08</div>
+        </div>
+        <div class="special-item">
+          <div class="special-label">KEY RESIST</div>
+          <div class="special-val">$736.34</div>
+        </div>
+        <div class="special-item">
+          <div class="special-label">KEY SUPPORT</div>
+          <div class="special-val">$729.57</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <div class="footer-text">ALL SYSTEMS NOMINAL &nbsp;//&nbsp; DATA REFRESHED AT MARKET OPEN &nbsp;//&nbsp; USE AT YOUR OWN RISK, BOSS</div>
+    <div class="footer-sig">DONNY 🦆 v1.0</div>
+  </div>
+
+</div>
+
+<script>
+  // Live clock
+  function updateClock() {
+    const now = new Date();
+    const days = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
+    const months = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+    const day = days[now.getDay()];
+    const date = String(now.getDate()).padStart(2,'0');
+    const month = months[now.getMonth()];
+    const year = now.getFullYear();
+    const h = String(now.getHours()).padStart(2,'0');
+    const m = String(now.getMinutes()).padStart(2,'0');
+    const s = String(now.getSeconds()).padStart(2,'0');
+    document.getElementById('hdr-date').textContent = `${day} // ${date} ${month} ${year}`;
+    document.getElementById('hdr-time').textContent = `LOCAL TIME: ${h}:${m}:${s} PST`;
+  }
+  setInterval(updateClock, 1000);
+  updateClock();
+</script>
+
+<script>
+  async function loadWeather() {
+    try {
+      const res = await fetch('/api/weather');
+      const w = await res.json();
+      document.getElementById('weather-temp').innerHTML = w.temp + '<span>°F</span>';
+      document.getElementById('weather-desc').innerText = w.desc;
+      document.getElementById('weather-feels').innerText = w.feels_like + '°F';
+      document.getElementById('weather-humidity').innerText = w.humidity + '%';
+      document.getElementById('weather-wind').innerText = w.wind;
+      document.getElementById('weather-uv').innerText = w.uv;
+      document.querySelector('.weather-icon').innerText = w.icon;
+    } catch(e) { console.error('Weather:', e); }
+  }
+
+  async function loadMarket() {
+    try {
+      const res = await fetch('/api/market');
+      const m = await res.json();
+      if (m.error) { console.error(m.error); return; }
+      document.getElementById('spy-price').innerText = '$' + m.daily.price.toFixed(2);
+      document.getElementById('spy-prev').innerText = '$' + m.daily.close.toFixed(2);
+      document.getElementById('spy-gap').innerText = 'GAP ' + (m.gap >= 0 ? '+' : '') + m.gap.toFixed(2) + ' (' + (m.gap_pct >= 0 ? '+' : '') + m.gap_pct.toFixed(2) + '%)';
+      document.getElementById('spy-hl').innerText = 'H: $' + m.daily.high.toFixed(2) + '  L: $' + m.daily.low.toFixed(2);
+      document.getElementById('vix-val').innerText = m.vix.toFixed(2);
+    } catch(e) { console.error('Market:', e); }
+  }
+
+  async function loadCalendar() {
+    try {
+      const res = await fetch('/api/calendar');
+      const events = await res.json();
+      const container = document.querySelector('.calendar-panel .panel-title');
+      let html = '';
+      events.forEach(e => {
+        const time = e.time ? e.time.replace('T', ' ').replace(':00-07:00', '').replace(':00-07:00', '') : 'All Day';
+        html += '<div class="cal-item"><div class="cal-time">' + time + '</div><div class="cal-event">' + e.summary + '</div></div>';
+      });
+      if (events.length === 0) html = '<div class="cal-empty">No upcoming events</div>';
+      container.insertAdjacentHTML('afterend', html);
+    } catch(e) { console.error('Calendar:', e); }
+  }
+
+  loadWeather();
+  loadMarket();
+  loadCalendar();
+</script>
+
+</body>
+</html>
