@@ -45,7 +45,7 @@ def handler(request):
             return Response(json.dumps({'error': str(e)}), mimetype='application/json', status=500)
     
     elif path == '/api/weather':
-        return Response(json.dumps({'temp': 79, 'feels_like': 76, 'humidity': 16, 'wind': '10 mph W', 'uv': '8 - High', 'desc': 'Sunny', 'icon': chr(9728)}), mimetype='application/json')
+        return Response(json.dumps({'temp': 79, 'feels_like': 76, 'humidity': 16, 'wind': '10 mph W', 'uv': '8 - High', 'desc': 'Sunny', 'icon': 'sunny'}), mimetype='application/json')
     
     elif path == '/api/calendar':
         return Response(json.dumps([{'time': '10:00 ET', 'summary': 'Calendar API not connected', 'location': ''}]), mimetype='application/json')
@@ -55,3 +55,5 @@ def handler(request):
     
     else:
         return Response('Not Found', mimetype='text/plain', status=404)
+
+app = handler
