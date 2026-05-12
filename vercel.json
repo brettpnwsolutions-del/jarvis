@@ -5,5 +5,8 @@
     { "source": "/api/calendar", "destination": "/api/calendar" },
     { "source": "/api/news", "destination": "/api/news" },
     { "source": "/(.*)", "destination": "/api/index" }
+  ],
+  "builds": [
+    { "src": "api/*.py", "use": "@vercel/python" }
   ]
 }
