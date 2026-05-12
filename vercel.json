@@ -1,17 +1,10 @@
 {
-  "framework": null,
-  "builds": [
-    { "src": "api/index.py", "use": "@vercel/python" },
-    { "src": "api/market.py", "use": "@vercel/python" },
-    { "src": "api/weather.py", "use": "@vercel/python" },
-    { "src": "api/calendar.py", "use": "@vercel/python" },
-    { "src": "api/news.py", "use": "@vercel/python" }
-  ],
-  "routes": [
-    { "src": "/api/market", "dest": "/api/market.py" },
-    { "src": "/api/weather", "dest": "/api/weather.py" },
-    { "src": "/api/calendar", "dest": "/api/calendar.py" },
-    { "src": "/api/news", "dest": "/api/news.py" },
-    { "src": "/(.*)", "dest": "/api/index.py" }
+  "version": 2,
+  "rewrites": [
+    { "source": "/api/market", "destination": "/api/market" },
+    { "source": "/api/weather", "destination": "/api/weather" },
+    { "source": "/api/calendar", "destination": "/api/calendar" },
+    { "source": "/api/news", "destination": "/api/news" },
+    { "source": "/(.*)", "destination": "/api/index" }
   ]
 }
