@@ -1,6 +1,10 @@
 {
   "version": 2,
-  "rewrites": [
-    { "source": "/", "destination": "/api/index" }
+  "routes": [
+    { "src": "/api/market",   "dest": "/api/market.py" },
+    { "src": "/api/weather",  "dest": "/api/weather.py" },
+    { "src": "/api/calendar", "dest": "/api/calendar.py" },
+    { "src": "/api/news",     "dest": "/api/news.py" },
+    { "src": "/(.*)",         "dest": "/api/index.py" }
   ]
 }
