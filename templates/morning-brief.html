@@ -644,6 +644,14 @@
           <div class="stat-label">UV Index</div>
           <div class="stat-value" id="weather-uv">--</div>
         </div>
+        <div class="stat-item">
+          <div class="stat-label">High</div>
+          <div class="stat-value" id="weather-high">--</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Low</div>
+          <div class="stat-value" id="weather-low">--</div>
+        </div>
       </div>
     </div>
 
@@ -814,6 +822,8 @@
       document.getElementById('weather-humidity').innerText = w.humidity + '%';
       document.getElementById('weather-wind').innerText = w.wind;
       document.getElementById('weather-uv').innerText = w.uv;
+      document.getElementById('weather-high').innerText = w.high + '°F';
+      document.getElementById('weather-low').innerText = w.low + '°F';
       document.querySelector('.weather-icon').innerText = w.icon;
     } catch(e) { console.error('Weather:', e); }
   }

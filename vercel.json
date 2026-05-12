@@ -1,10 +1,7 @@
 {
   "version": 2,
   "rewrites": [
-    { "source": "/api/market", "destination": "/api/market" },
-    { "source": "/api/weather", "destination": "/api/weather" },
-    { "source": "/api/calendar", "destination": "/api/calendar" },
-    { "source": "/api/news", "destination": "/api/news" },
+    { "source": "/api/:path*", "destination": "/api/:path*" },
     { "source": "/(.*)", "destination": "/api/index" }
   ]
 }
