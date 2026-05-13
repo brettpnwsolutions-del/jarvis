@@ -1,10 +1,7 @@
-{
-  "version": 2,
-  "routes": [
-    { "src": "/api/market",   "dest": "/api/market.py" },
-    { "src": "/api/weather",  "dest": "/api/weather.py" },
-    { "src": "/api/calendar", "dest": "/api/calendar.py" },
-    { "src": "/api/news",     "dest": "/api/news.py" },
-    { "src": "/(.*)",         "dest": "/api/index.py" }
-  ]
-}
+{"rewrites": [
+  {"source": "/api/market", "destination": "/api/market.py"},
+  {"source": "/api/weather", "destination": "/api/weather.py"},
+  {"source": "/api/calendar", "destination": "/api/calendar.py"},
+  {"source": "/api/news", "destination": "/api/news.py"},
+  {"source": "/(.*)", "destination": "/api/index.py"}
+]}

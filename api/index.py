@@ -1,18 +1,21 @@
-import json
+from http.server import BaseHTTPRequestHandler
 
-def handler(event, context):
-    try:
-        with open('templates/morning-brief.html', 'r') as f:
-            html = f.read()
-        
-        return {
-            "statusCode": 200,
-            "headers": {"Content-Type": "text/html; charset=utf-8"},
-            "body": html
-        }
-    except Exception as e:
-        return {
-            "statusCode": 500,
-            "headers": {"Content-Type": "text/plain"},
-            "body": f"Error: {str(e)}"
-        }
+class handler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        try:
+            with open('templates/morning-brief.html', 'r') as f:
+                html = f.read()
+            body = html.encode('utf-8')
+            self.send_response(200)
+            self.send_header('Content-Type', 'text/html; charset=utf-8')
+            self.end_headers()
+            self.wfile.write(body)
+        except Exception as e:
+            body = f'Error: {str(e)}'.encode()
+            self.send_response(500)
+            self.send_header('Content-Type', 'text/plain')
+            self.end_headers()
+            self.wfile.write(body)
+
+    def log_message(self, format, *args):
+        pass
