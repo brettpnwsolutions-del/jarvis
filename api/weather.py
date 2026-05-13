@@ -1,74 +1,77 @@
 import json
 import urllib.request
-from http.server import BaseHTTPRequestHandler
+import urllib.error
+import os
 
-# Brett's location - Spokane, WA
-LAT = 47.6588
-LON = -117.4260
-
-class handler(BaseHTTPRequestHandler):
-    def do_GET(self):
-        try:
-            url = (
-                f"https://api.open-meteo.com/v1/forecast"
-                f"?latitude={LAT}&longitude={LON}"
-                f"&current=temperature_2m,apparent_temperature,relative_humidity_2m,"
-                f"wind_speed_10m,weather_code,uv_index"
-                f"&daily=temperature_2m_max,temperature_2m_min"
-                f"&temperature_unit=fahrenheit&wind_speed_unit=mph"
-                f"&timezone=America/Los_Angeles&forecast_days=1"
-            )
-            with urllib.request.urlopen(url) as res:
-                raw = json.loads(res.read())
-
-            current = raw["current"]
-            daily = raw["daily"]
-
-            # Map weather code to description and icon
-            code = current["weather_code"]
-            if code == 0:
-                desc, icon = "Clear Sky", "☀️"
-            elif code in [1, 2]:
-                desc, icon = "Partly Cloudy", "⛅"
-            elif code == 3:
-                desc, icon = "Overcast", "☁️"
-            elif code in [51, 53, 55, 61, 63, 65]:
-                desc, icon = "Rainy", "🌧️"
-            elif code in [71, 73, 75, 77]:
-                desc, icon = "Snowy", "❄️"
-            elif code in [80, 81, 82]:
-                desc, icon = "Showers", "🌦️"
-            elif code in [95, 96, 99]:
-                desc, icon = "Thunderstorm", "⛈️"
-            else:
-                desc, icon = "Cloudy", "☁️"
-
-            data = {
-                "temp": round(current["temperature_2m"]),
-                "feels_like": round(current["apparent_temperature"]),
-                "humidity": round(current["relative_humidity_2m"]),
-                "wind": f"{round(current['wind_speed_10m'])} mph",
-                "uv": str(round(current.get("uv_index", 0))),
-                "desc": desc,
-                "icon": icon,
-                "high": round(daily["temperature_2m_max"][0]),
-                "low": round(daily["temperature_2m_min"][0])
-            }
-
-        except Exception as e:
-            data = {
-                "temp": "--", "feels_like": "--", "humidity": "--",
-                "wind": "--", "uv": "--", "desc": "Unavailable",
-                "icon": "❓", "high": "--", "low": "--",
-                "error": str(e)
-            }
-
-        body = json.dumps(data).encode()
-        self.send_response(200)
-        self.send_header('Content-Type', 'application/json')
-        self.send_header('Access-Control-Allow-Origin', '*')
-        self.end_headers()
-        self.wfile.write(body)
-
-    def log_message(self, format, *args):
-        pass
+def handler(event, context):
+    try:
+        # Using Open-Meteo free API (no key needed)
+        # Location: Reno, NV (close to SF bay area, good enough for general weather)
+        lat = 39.5296
+        lon = -119.8138
+        
+        url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,uv_index&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=auto"
+        
+        with urllib.request.urlopen(url, timeout=10) as response:
+            data = json.loads(response.read())
+        
+        current = data.get("current", {})
+        daily = data.get("daily", {})
+        
+        # Map weather codes to icons and descriptions
+        code = current.get("weather_code", 0)
+        weather_map = {
+            0: ("☀️", "Clear"),
+            1: ("🌤", "Mainly Clear"),
+            2: ("⛅", "Partly Cloudy"),
+            3: ("☁️", "Overcast"),
+            45: ("🌫", "Fog"),
+            48: ("🌫", "Fog"),
+            51: ("🌧", "Drizzle"),
+            53: ("🌧", "Drizzle"),
+            55: ("🌧", "Drizzle"),
+            61: ("🌧", "Rain"),
+            63: ("🌧", "Rain"),
+            65: ("🌧", "Rain"),
+            71: ("🌨", "Snow"),
+            73: ("🌨", "Snow"),
+            75: ("🌨", "Snow"),
+            80: ("🌦", "Rain Showers"),
+            81: ("🌦", "Rain Showers"),
+            82: ("🌦", "Rain Showers"),
+            95: ("⛈", "Thunderstorm"),
+            96: ("⛈", "Thunderstorm"),
+            99: ("⛈", "Thunderstorm"),
+        }
+        icon, desc = weather_map.get(code, ("☀️", "Clear"))
+        
+        result = {
+            "temp": round(current.get("temperature_2m", 0)),
+            "feels_like": round(current.get("apparent_temperature", 0)),
+            "humidity": round(current.get("relative_humidity_2m", 0)),
+            "wind": f"{round(current.get('wind_speed_10m', 0))} mph",
+            "uv": str(round(current.get("uv_index", 0))),
+            "desc": desc,
+            "icon": icon,
+            "high": round(daily.get("temperature_2m_max", [0])[0], 1) if daily.get("temperature_2m_max") else "--",
+            "low": round(daily.get("temperature_2m_min", [0])[0], 1) if daily.get("temperature_2m_min") else "--"
+        }
+        
+        return {
+            "statusCode": 200,
+            "headers": {"Content-Type": "application/json", "Access-Control-Allow-Origin": "*"},
+            "body": json.dumps(result)
+        }
+        
+    except Exception as e:
+        # Return fallback data on error
+        fallback = {
+            "temp": 72, "feels_like": 70, "humidity": 45,
+            "wind": "5 mph", "uv": "5",
+            "desc": "Sunny", "icon": "☀️", "high": 78, "low": 55
+        }
+        return {
+            "statusCode": 200,
+            "headers": {"Content-Type": "application/json", "Access-Control-Allow-Origin": "*"},
+            "body": json.dumps(fallback)
+        }

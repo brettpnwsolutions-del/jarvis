@@ -1,6 +1,5 @@
 import json
 import yfinance as yf
-from http.server import BaseHTTPRequestHandler
 
 SYMBOL = "SPY"
 VIX_SYMBOL = "^VIX"
@@ -31,49 +30,43 @@ def calc_pivots(high, low, close):
         "s2": round(pp - (high - low), 2)
     }
 
-class handler(BaseHTTPRequestHandler):
-    def do_GET(self):
-        try:
-            daily   = get_tf_data(SYMBOL, "2d",  "1d",  "Daily")
-            weekly  = get_tf_data(SYMBOL, "2wk", "1wk", "Weekly")
-            monthly = get_tf_data(SYMBOL, "2mo", "1mo", "Monthly")
-            yearly  = get_tf_data(SYMBOL, "2y",  "1mo", "Yearly")
+def handler(event, context):
+    try:
+        daily   = get_tf_data(SYMBOL, "2d",  "1d",  "Daily")
+        weekly  = get_tf_data(SYMBOL, "2wk", "1wk", "Weekly")
+        monthly = get_tf_data(SYMBOL, "2mo", "1mo", "Monthly")
+        yearly  = get_tf_data(SYMBOL, "2y",  "1mo", "Yearly")
 
-            vix_hist    = yf.Ticker(VIX_SYMBOL).history(period="5d", interval="1d")
-            vix_current = round(float(vix_hist["Close"].iloc[-1]), 2)
+        vix_hist    = yf.Ticker(VIX_SYMBOL).history(period="5d", interval="1d")
+        vix_current = round(float(vix_hist["Close"].iloc[-1]), 2)
 
-            gap     = daily["open"] - daily["close"]
-            gap_pct = round((gap / daily["close"]) * 100, 2)
+        gap     = daily["open"] - daily["close"]
+        gap_pct = round((gap / daily["close"]) * 100, 2)
 
-            data = {
-                "daily":          daily,
-                "weekly":         weekly,
-                "monthly":        monthly,
-                "yearly":         yearly,
-                "daily_pivots":   calc_pivots(daily["high"],   daily["low"],   daily["close"]),
-                "weekly_pivots":  calc_pivots(weekly["high"],  weekly["low"],  weekly["close"]),
-                "monthly_pivots": calc_pivots(monthly["high"], monthly["low"], monthly["close"]),
-                "vix":            vix_current,
-                "gap":            round(gap, 2),
-                "gap_pct":        gap_pct,
-                "bias":           "Flat" if abs(gap_pct) < 0.3 else ("UP" if gap_pct > 0 else "DOWN"),
-                "vix_status":     "HIGH" if vix_current > 20 else ("LOW" if vix_current < 14 else "NORMAL")
-            }
+        data = {
+            "daily":          daily,
+            "weekly":         weekly,
+            "monthly":        monthly,
+            "yearly":         yearly,
+            "daily_pivots":   calc_pivots(daily["high"],   daily["low"],   daily["close"]),
+            "weekly_pivots":  calc_pivots(weekly["high"],  weekly["low"],  weekly["close"]),
+            "monthly_pivots": calc_pivots(monthly["high"], monthly["low"], monthly["close"]),
+            "vix":            vix_current,
+            "gap":            round(gap, 2),
+            "gap_pct":        gap_pct,
+            "bias":           "Flat" if abs(gap_pct) < 0.3 else ("UP" if gap_pct > 0 else "DOWN"),
+            "vix_status":     "HIGH" if vix_current > 20 else ("LOW" if vix_current < 14 else "NORMAL")
+        }
 
-            body = json.dumps(data).encode()
-            self.send_response(200)
-            self.send_header('Content-Type', 'application/json')
-            self.send_header('Access-Control-Allow-Origin', '*')
-            self.end_headers()
-            self.wfile.write(body)
+        return {
+            "statusCode": 200,
+            "headers": {"Content-Type": "application/json", "Access-Control-Allow-Origin": "*"},
+            "body": json.dumps(data)
+        }
 
-        except Exception as e:
-            body = json.dumps({"error": str(e)}).encode()
-            self.send_response(500)
-            self.send_header('Content-Type', 'application/json')
-            self.send_header('Access-Control-Allow-Origin', '*')
-            self.end_headers()
-            self.wfile.write(body)
-
-    def log_message(self, format, *args):
-        pass
+    except Exception as e:
+        return {
+            "statusCode": 500,
+            "headers": {"Content-Type": "application/json"},
+            "body": json.dumps({"error": str(e)})
+        }
