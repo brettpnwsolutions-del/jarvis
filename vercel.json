@@ -1,7 +1,9 @@
-{"rewrites": [
-  {"source": "/api/market", "destination": "/api/market.py"},
-  {"source": "/api/weather", "destination": "/api/weather.py"},
-  {"source": "/api/calendar", "destination": "/api/calendar.py"},
-  {"source": "/api/news", "destination": "/api/news.py"},
-  {"source": "/(.*)", "destination": "/api/index.py"}
-]}
+{
+  "builds": [
+    { "src": "api/index.py", "use": "@vercel/python" },
+    { "src": "api/market.py", "use": "@vercel/python" },
+    { "src": "api/weather.py", "use": "@vercel/python" },
+    { "src": "api/calendar.py", "use": "@vercel/python" },
+    { "src": "api/news.py", "use": "@vercel/python" }
+  ]
+}
